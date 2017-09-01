@@ -2,25 +2,20 @@ package com.ironyard;
 
 public class VehicleInfo {
 
-    private int VIN;
+    private String VIN;
     private double odometer;
     private double consumption;
     private double odReadingLastOilChange;
     private double engineSize;
 
     public VehicleInfo() {
-        this.VIN = VIN;
-        this.odometer = odometer;
-        this.consumption = consumption;
-        this.odReadingLastOilChange = odReadingLastOilChange;
-        this.engineSize = engineSize;
     }
 
-    public int getVIN() {
+    public String getVIN() {
         return VIN;
     }
 
-    public void setVIN(int VIN) {
+    public void setVIN(String VIN) {
         this.VIN = VIN;
     }
 

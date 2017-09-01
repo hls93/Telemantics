@@ -1,15 +1,17 @@
 package com.ironyard;
+
+import java.io.IOException;
 import java.util.Scanner;
 
 public class Main {
 
     public static void main(String[] args) {
         VehicleInfo newVehicle = new VehicleInfo();
-	    Scanner scanner = new Scanner(System.in);
+        Scanner scanner = new Scanner(System.in);
 
 
         System.out.println("Please enter the VIN: ");
-        int vin = scanner.nextInt();
+        String vin = scanner.nextLine();
         newVehicle.setVIN(vin);
 
         System.out.println("Please enter the Odometer mileage");
@@ -29,7 +31,22 @@ public class Main {
         newVehicle.setEngineSize(engineSize);
 
 
+        try {
+            TelematicsService.report(newVehicle);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
+        try {
+            TelematicsService.convertJSONToObj();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
+//        try {
+//            TelematicsService.updateDashboard();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
     }
 }
