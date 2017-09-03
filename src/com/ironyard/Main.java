@@ -1,6 +1,7 @@
 package com.ironyard;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Main {
@@ -31,6 +32,8 @@ public class Main {
         newVehicle.setEngineSize(engineSize);
 
 
+        ArrayList<VehicleInfo> list = new ArrayList<>();
+
         try {
             TelematicsService.report(newVehicle);
         } catch (IOException e) {
@@ -38,15 +41,15 @@ public class Main {
         }
 
         try {
-            TelematicsService.convertJSONToObj();
+            list = TelematicsService.convertJSONToObj();
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-//        try {
-//            TelematicsService.updateDashboard();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
+        try {
+            TelematicsService.updateDashboard(list);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

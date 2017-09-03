@@ -1,22 +1,16 @@
 package com.ironyard;
 
-import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.charset.Charset;
-import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
 
-import com.fasterxml.jackson.core.JsonGenerationException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class TelematicsService {
     //Write the VehicleInfo to a file as json using the VIN as the name of the file and a "json" extension
-    public  static void report(VehicleInfo newVehicle) throws JsonGenerationException, JsonMappingException, IOException{
+    public static void report(VehicleInfo newVehicle) throws IOException {
 
         ObjectMapper mapper = new ObjectMapper();
         String vinNum = newVehicle.getVIN();
@@ -26,40 +20,91 @@ public class TelematicsService {
     }
 
     //Find all the files that end with ".json" and convert back to a VehicleInfo object.
-    public static void convertJSONToObj() throws IOException {
-        int incrementVIObject = 0;
+    public static ArrayList<VehicleInfo> convertJSONToObj() throws IOException {
         File file = new File(".");
+        ArrayList<VehicleInfo> a = new ArrayList<>();
         for (File f : file.listFiles()) {
             if (f.getName().endsWith(".json")) {
                 ObjectMapper mapper = new ObjectMapper();
-                f = new File(f.getName());
+
                 VehicleInfo viFromRepToObj = mapper.readValue(f, VehicleInfo.class);
 
-                System.out.println("Printing Java Object Information");
-                System.out.println("Object Reference: " + viFromRepToObj);
-                System.out.println("Vehicle VIN : " + viFromRepToObj.getVIN());
-                System.out.println("Vehicle Odometer: " + viFromRepToObj.getOdometer());
-                System.out.println("Vehicle gas consumed: " + viFromRepToObj.getConsumption());
-                System.out.println("Vehicle odometer reading for last oil change: " + viFromRepToObj.getOdReadingLastOilChange());
-                System.out.println("Vehicle VIN engine size: " + viFromRepToObj.getEngineSize());
+                a.add(viFromRepToObj);
             }
         }
+        return a;
     }
 
     //Update a dashboard.html
-    public static void updateDashboard(VehicleInfo newVehicle) throws IOException {
-        List<String> lines = new ArrayList<>();
-        final String FILE_NAME = "dashboard.html";
-        File file = new File(FILE_NAME);
-        Scanner scanner = new Scanner(file);
-        while (scanner.hasNext()){
-            lines.add(scanner.nextLine());
+    public static void updateDashboard(ArrayList<VehicleInfo> vehicles) throws IOException {
+
+        double avgOdometer = 0;
+        double avgConsumption = 0;
+        double avgOdReadingLastOilChange = 0;
+        double avgEngineSize = 0;
+        String vehicleHtml = "";
+
+        String fileName = "dashboard.html";
+        File file = new File(fileName);
+
+        for (VehicleInfo v : vehicles) {
+            avgOdometer += v.getOdometer();
+            avgConsumption += v.getConsumption();
+            avgOdReadingLastOilChange += v.getOdReadingLastOilChange();
+            avgEngineSize += v.getEngineSize();
+            vehicleHtml += "    <tr>\n" +
+                    "        <th>VIN</th><th>Odometer (miles)</th><th>Consumption (gallons)</th><th>Last Oil Change</th><th>Engine Size (liters)</th>\n" +
+                    "    </tr>\n" +
+                    "    <tr>\n" +
+                    "        <td align=\"center\">" + v.getVIN() + "</td><td align=\"center\">" + v.getOdometer() + "</td><td align=\"center\">" + v.getConsumption() + "</td><td align=\"center\">" + v.getOdReadingLastOilChange() + "</td><td align=\"center\">" + v.getEngineSize() + "</td>\n" +
+                    "    </tr>\n";
         }
-        System.out.println(lines);
-        String odometer = String.valueOf(newVehicle.getOdometer());
-        System.out.println(odometer);
 
+        avgOdometer /= vehicles.size();
+        avgConsumption /= vehicles.size();
+        avgOdReadingLastOilChange /= vehicles.size();
+        avgEngineSize /= vehicles.size();
+
+        String mainHtml = "<!DOCTYPE html>\n" +
+                "<html lang=\"en\">\n" +
+                "<head>\n" +
+                "    <meta charset=\"UTF-8\">\n" +
+                "    <title>Vehicle Telematics Dashboard</title>\n" +
+                "</head>\n" +
+                "<body>\n" +
+                "<h1 align=\"center\">Averages for # vehicles</h1>\n" +
+                "<table align=\"center\">\n" +
+                "    <tr>\n" +
+                "        <th>Odometer (miles) |</th>" +
+                "        <th>Consumption (gallons) |</th>" +
+                "        <th>Last Oil Change |</th>" +
+                "        <th>Engine Size (liters)</th>\n" +
+                "    </tr>\n" +
+                "    <tr>\n" +
+                "        <td align=\"center\">"+avgOdometer+"</td>" +
+                "        <td align=\"center\">"+avgConsumption+"</td>" +
+                "        <td align=\"center\">"+avgOdReadingLastOilChange+"</td>" +
+                "        <td align=\"center\">"+avgEngineSize+"</td>\n" +
+                "    </tr>\n" +
+                "</table>\n" +
+                "<br>" +
+                "<h1 align=\"center\">History</h1>\n";
+
+        mainHtml +=
+                "<table align=\"center\" border=\"1\">\n" + vehicleHtml  +
+                "</table>\n" + "</body>\n" + "</html>";
+
+        try {
+            FileOutputStream stream = new FileOutputStream(file, false);
+            byte[] myBytes = mainHtml.getBytes();
+            stream.write(myBytes);
+            stream.close();
+        }
+        catch(FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
     }
-
-    
 }
